@@ -5,11 +5,14 @@
     "license": "MIT",
     "dependencies": {
         "core": "*",
-        "radio": "*"
+        "bluetooth": "*",
+        "robotbitnopixel": "github:kittenbot/pxt-robotbitnopixel#v0.2.0",
+        "neopixel-bluetoothallowed": "github:laboratoryforplayfulcomputation/pxt-neopixel-bluetoothallowed#v0.0.2"
     },
     "files": [
         "README.md",
-        "main.ts"
+        "main.ts",
+        "_locales/zh/knock_robot_neopixel_bit.json"
     ],
     "testFiles": [
         "test.ts"
