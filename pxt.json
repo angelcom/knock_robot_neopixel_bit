@@ -1,0 +1,18 @@
+{
+    "name": "knock_robot_neopixel_bit",
+    "version": "0.0.0",
+    "description": "knock microbit with bluetooth,robotbit and neopixel",
+    "license": "MIT",
+    "dependencies": {
+        "core": "*",
+        "radio": "*"
+    },
+    "files": [
+        "README.md",
+        "main.ts"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "public": false
+}
