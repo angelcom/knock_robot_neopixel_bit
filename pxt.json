@@ -1,6 +1,6 @@
 {
     "name": "knock_robot_neopixel_bit",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "knock microbit with bluetooth,robotbit and neopixel",
     "license": "MIT",
     "dependencies": {
