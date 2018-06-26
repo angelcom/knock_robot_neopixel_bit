@@ -508,12 +508,47 @@ namespace knock_robot_neopixel {
 
     //% blockId=knock_robot_neopixel_init
     //% block="Init |Auto Handle Message %auto"
-    export function init(autoHandle: boolean, robotled: boolean) {
+    export function init(autoHandle: boolean, robotled: boolean, usPort:number=-1) {
         bluetooth.startUartService()
         bluetooth.onUartDataReceived(terminator, () => {
             handleIncomingUARTData(autoHandle);
             basic.pause(10);
         })
+
+        bluetooth.onBluetoothConnected(() => {
+            BluetoothConnected = true
+            basic.showIcon(IconNames.Diamond)
+            music.playTone(600, 50)
+            music.playTone(800, 50)
+            music.playTone(1200, 50)
+            basic.pause(10)
+        })
+        bluetooth.onBluetoothDisconnected(() => {
+            BluetoothConnected = false
+            basic.showIcon(IconNames.SmallDiamond)
+            music.playTone(1200, 50)
+            music.playTone(800, 50)
+            music.playTone(600, 50)
+            basic.pause(10)
+        })
+        // 初始化超声波
+        initUltrasonic(usPort);
+        // 初始化罗盘
+        // if (ch_init) {
+        //     //input.calibrateCompass()
+        //     let chtest = input.compassHeading()
+        //     CH_INIT = true
+        // }
+        // 开启蓝牙uart服务
+        bluetooth.startUartService()
+        // 初始化完成，等待蓝牙连接，这里可以加一些判断，显示ch,us,ac这些有没有初始化
+        basic.showLeds(`
+                        . . # # .
+                        # . # . #
+                        . # # # .
+                        # . # . #
+                        . . # # .
+                        `)
         if (robotled) {
             strip = neopixel.create(DigitalPin.P16, 4, NeoPixelMode.RGB);
         }
