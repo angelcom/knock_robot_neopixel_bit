@@ -286,24 +286,37 @@ namespace knock_robot_neopixel {
         }
     }
 
+    // 第一位为停止位，如果为1，则转动舵机后不断电，如果为0，则转动后断电
+    // 第二位开始每5位为一个组，其中第一位为舵机编号，支持0-9共10个舵机，
+    // 接下去4位为转动角度，-999~0999(一般为-180~0180)
     function servo(arg: string) {
-        if (arg.length >= 5) {
-            let index = parseInt(arg.substr(0, 1));
-            let degree = parseInt(arg.substr(1, 4));
+        let stop = parseInt(arg.substr(0, 1));
+        if (arg.length >= 6) {
+            let index = parseInt(arg.substr(1, 1));
+            let degree = parseInt(arg.substr(2, 4));
             robotbit.Servo(index, degree);
             basic.pause(50);
+            if (stop) {
+                setPwm(index + 7, 0, 0);// 舵机断电
+            }
         }
-        if (arg.length >= 10) {
-            let index = parseInt(arg.substr(5, 1));
-            let degree = parseInt(arg.substr(6, 4));
+        if (arg.length >= 11) {
+            let index = parseInt(arg.substr(6, 1));
+            let degree = parseInt(arg.substr(7, 4));
             robotbit.Servo(index, degree);
             basic.pause(50);
+            if (stop) {
+                setPwm(index + 7, 0, 0);// 舵机断电
+            }
         }
-        if (arg.length >= 15) {
-            let index = parseInt(arg.substr(10, 1));
-            let degree = parseInt(arg.substr(11, 4));
+        if (arg.length >= 16) {
+            let index = parseInt(arg.substr(11, 1));
+            let degree = parseInt(arg.substr(12, 4));
             robotbit.Servo(index, degree);
             basic.pause(50);
+            if (stop) {
+                setPwm(index + 7, 0, 0);// 舵机断电
+            }
         }
     }
 
@@ -315,7 +328,7 @@ namespace knock_robot_neopixel {
             strip.show();
         }
     }
-    
+
     function doMove(arg: string) {
         let direction = arg.substr(0, 3);
 
@@ -488,7 +501,7 @@ namespace knock_robot_neopixel {
             }
             if (US_AUTO_SEND && US_NEXTTIME < input.runningTime()) {
                 if (US_INIT) {
-                    bluetooth.uartWriteString("us1" + robotbit.Ultrasonic(US_PORT))
+                    bluetooth.uartWriteString("us1" + Ultrasonic(US_PORT))
                     US_NEXTTIME = input.runningTime() + US_TIMEOUT;
                 } else {
                     bluetooth.uartWriteString("us0" + "-1")
@@ -499,16 +512,68 @@ namespace knock_robot_neopixel {
                 bluetooth.uartWriteString("ac1" + input.acceleration(Dimension.X) + "|" + input.acceleration(Dimension.Y) + "|" + input.acceleration(Dimension.Z))
                 AC_NEXTTIME = input.runningTime() + AC_TIMEOUT;
             }
-            // if (SCAN_ULTRASONIC) {   // 扫描功能调试后再启用
-            //     SCAN_ULTRASONIC = false;
-            //     scanUltrasonic();
-            // }
+            if (SCAN_ULTRASONIC) {   // 扫描功能调试后再启用
+                SCAN_ULTRASONIC = false;
+                scanUltrasonic();
+            }
         }
+    }
+    // robotbit引入模块 ，此处测到的距离是58倍的CM，因为MAKECODE暂时无法处理浮点数
+    function Ultrasonic(pin: DigitalPin): number {
+
+        // send pulse
+        pins.setPull(pin, PinPullMode.PullNone);
+        pins.digitalWritePin(pin, 0);
+        control.waitMicros(2);
+        pins.digitalWritePin(pin, 1);
+        control.waitMicros(10);
+        pins.digitalWritePin(pin, 0);
+
+        // read pulse
+        //In JavaScript, numbers are floating point values. However, for the micro:bit, numbers are integer values.
+        // 所以这里获得的超声波数值不除58，发送到手机端操作。
+        let d = pins.pulseIn(pin, PulseValue.High, 11600);
+        return d;
+    }
+    // 发送多次扫描结果，us9表示停车扫描
+    function scanUltrasonic() {
+        doPause();
+        robotbit.Servo(robotbit.Servos.S1, 10);
+        basic.pause(150);
+        let us_AUTO_SEND = US_AUTO_SEND;
+        US_AUTO_SEND = false;
+        let dddd = [10, 30, 60, 90, 120, 150, 170];
+        dddd.forEach((value: number, index: number) => {
+            robotbit.Servo(robotbit.Servos.S1, value);
+            basic.pause(80);
+            if (US_INIT) {
+                bluetooth.uartWriteString("us9" + value.toString() + "|" + Ultrasonic(US_PORT))
+            }
+        })
+        robotbit.Servo(robotbit.Servos.S1, 90);
+        basic.pause(100);// 等待舵机复位
+        setPwm(robotbit.Servos.S1 + 7, 0, 0);// 舵机断电
+        US_AUTO_SEND = us_AUTO_SEND;
+        motorRestore();
+    }
+    const PCA9685_ADDRESS = 0x40
+    const LED0_ON_L = 0x06
+    function setPwm(channel: number, on: number, off: number): void {
+        if (channel < 0 || channel > 15)
+            return;
+
+        let buf = pins.createBuffer(5);
+        buf[0] = LED0_ON_L + 4 * channel;
+        buf[1] = on & 0xff;
+        buf[2] = (on >> 8) & 0xff;
+        buf[3] = off & 0xff;
+        buf[4] = (off >> 8) & 0xff;
+        pins.i2cWriteBuffer(PCA9685_ADDRESS, buf);
     }
 
     //% blockId=knock_robot_neopixel_init
     //% block="Init |Auto Handle Message %auto"
-    export function init(autoHandle: boolean, robotled: boolean, usPort:number=-1) {
+    export function init(autoHandle: boolean, robotled: boolean, usPort: number = -1) {
         bluetooth.startUartService()
         bluetooth.onUartDataReceived(terminator, () => {
             handleIncomingUARTData(autoHandle);
