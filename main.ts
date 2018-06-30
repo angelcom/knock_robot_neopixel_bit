@@ -38,6 +38,7 @@ namespace knock_robot_neopixel {
     // ROBOTBIT内建4个LED灯
     let strip: neopixel.Strip = null;
 
+    
     export enum CustomCmd {
         //% block="reset microbit"
         rst = -1,
@@ -79,7 +80,7 @@ namespace knock_robot_neopixel {
     //% mutateText="My Arguments"
     //% mutateDefaults="key,args"
     //% blockId=knock_robot_neopixel_onCmdReceived
-    //% block="on cmd received|key %theKey"
+    //% block="当收到蓝牙指令时 |key %theKey"
     export function onCmdReceived(key: string, callback: (args: ArgsContainer) => void) {
         let newHandler = new LinkedKeyHandlerList()
         newHandler.callback = callback;
@@ -492,6 +493,7 @@ namespace knock_robot_neopixel {
             }
         }
     }
+    //% block="自动返回消息"
     export function sendMessage() {
         if (BluetoothConnected) {   // 3个字符为命令，第三个字符1为正常，0为异常
             if (CH_AUTO_SEND && CH_NEXTTIME < input.runningTime()) {
@@ -576,7 +578,7 @@ namespace knock_robot_neopixel {
     }
 
     //% blockId=knock_robot_neopixel_init
-    //% block="Init |Auto Handle Message %auto"
+    //% block="初始化 |自动处理消息 %autoHandle | 启用板载LED %robotled| 超声波端口 %usPort"
     export function init(autoHandle: boolean, robotled: boolean, usPort: number = -1) {
         bluetooth.startUartService()
         bluetooth.onUartDataReceived(terminator, () => {
