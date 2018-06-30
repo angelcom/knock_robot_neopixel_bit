@@ -68,6 +68,7 @@ namespace knock_robot_neopixel {
 
     class LinkedKeyHandlerList {
         key: string;
+        // microbit中的callbak最多支持3个参数
         callback: (args: ArgsContainer) => void;
         next: LinkedKeyHandlerList
     }
@@ -188,6 +189,8 @@ namespace knock_robot_neopixel {
             case "snake":
                 basic.showIcon(IconNames.Snake);
                 break;
+            case "rabbit":
+                basic.showIcon(IconNames.Rabbit);
             case "cow":
                 basic.showIcon(IconNames.Cow);
                 break;
@@ -320,10 +323,11 @@ namespace knock_robot_neopixel {
         }
     }
 
+    // 前4位LED偏移，后面的N位为颜色（int32）
     function showLed(arg: string) {
         if (strip != null) {
-            let offset = parseInt(arg.substr(0, 3));
-            let rgb = parseInt(arg.substr(3));
+            let offset = parseInt(arg.substr(0, 4));
+            let rgb = parseInt(arg.substr(4));
             strip.setPixelColor(offset, rgb);
             strip.show();
         }
@@ -591,6 +595,11 @@ namespace knock_robot_neopixel {
         bluetooth.onBluetoothDisconnected(() => {
             BluetoothConnected = false
             basic.showIcon(IconNames.SmallDiamond)
+            if (strip != null) {    // 断开蓝牙时关闭led灯
+                for (let i = 0; i < 4; i++)
+                    strip.setPixelColor(i, 0);
+                strip.show();
+            }
             music.playTone(1200, 50)
             music.playTone(800, 50)
             music.playTone(600, 50)
