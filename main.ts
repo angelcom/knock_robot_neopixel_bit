@@ -29,16 +29,25 @@ namespace knock_robot_neopixel {
     let AC_TIMEOUT = MIN_SEND_TIMEOUT    // 自动发送延迟（ms）
     let AC_NEXTTIME = 0   // 下次发送时间
 
+    // user-defined;内置3组自定义发送内容
+    let UD_AUTO_SEND = [false, false, false]
+    let UD_TIMEOUT = [MIN_SEND_TIMEOUT, MIN_SEND_TIMEOUT, MIN_SEND_TIMEOUT]
+    let UD_NEXTTIME = [0, 0, 0]
+    let UD_MAX_ID = 3;
+
+    // 电机速度
     let M1A_SPEED = 0, M2A_SPEED = 0, M1B_SPEED = 0, M2B_SPEED = 0;
 
     let SCAN_ULTRASONIC = false;// 超声波扫描前方障碍物
 
-    let handlers: LinkedKeyHandlerList = null;
+    let CMD_HANDLERS: LinkedKeyHandlerList = null;  // 自定义命令处理器
+
+    let UD_HANDLERS: LinkedIdHandlerList = null;  // 用户自动发送数据处理器
 
     // ROBOTBIT内建4个LED灯
     let strip: neopixel.Strip = null;
 
-    
+
     export enum CustomCmd {
         //% block="reset microbit"
         rst = -1,
@@ -74,20 +83,39 @@ namespace knock_robot_neopixel {
         next: LinkedKeyHandlerList
     }
 
+    class LinkedIdHandlerList {
+        id: number;
+        callback: () => void;
+        next: LinkedIdHandlerList
+    }
+
     let messageContainer = new ArgsContainer;
 
     //% mutate=objectdestructuring
     //% mutateText="My Arguments"
     //% mutateDefaults="key,args"
     //% blockId=knock_robot_neopixel_onCmdReceived
-    //% block="当收到蓝牙指令时 |key %theKey"
-    export function onCmdReceived(key: string, callback: (args: ArgsContainer) => void) {
+    //% block="当收到蓝牙数据时 |命令 %cmd"
+    export function onCmdReceived(cmd: string, callback: (args: ArgsContainer) => void) {
         let newHandler = new LinkedKeyHandlerList()
         newHandler.callback = callback;
-        newHandler.key = key;
-        newHandler.next = handlers;
-        handlers = newHandler;
+        newHandler.key = cmd;
+        newHandler.next = CMD_HANDLERS;
+        CMD_HANDLERS = newHandler;
     }
+
+
+    //% blockId=knock_robot_neopixel_onUserAutoSend
+    //% block="当返回数据时 |id %id"
+    export function onUserAutoSend(id: number, callback: () => void) {
+        let newHandler = new LinkedIdHandlerList()
+        newHandler.callback = callback;
+        newHandler.id = id;
+        newHandler.next = UD_HANDLERS;
+        UD_HANDLERS = newHandler;
+    }
+
+
 
     // let splitString = (splitOnChar: string, input: string) => {
     //     let result: string[] = []
@@ -236,27 +264,27 @@ namespace knock_robot_neopixel {
                 break;
         }
     }
-
-    function playMusic(arg: string) {
-        switch (arg) {
-            case "nyan":
-                music.beginMelody(music.builtInMelody(Melodies.Nyan), MelodyOptions.Once)
-                break;
-            case "powerup":
-                music.beginMelody(music.builtInMelody(Melodies.PowerUp), MelodyOptions.Once)
-                break;
-            case "powerdown":
-                music.beginMelody(music.builtInMelody(Melodies.PowerDown), MelodyOptions.Once)
-                break;
-            case "birthday":
-                music.beginMelody(music.builtInMelody(Melodies.Birthday), MelodyOptions.Once)
-                break;
-            case "wedding":
-                music.beginMelody(music.builtInMelody(Melodies.Wedding), MelodyOptions.Once)
-                break;
+    /* 有问题，暂时不支持
+        function playMusic(arg: string) {
+            switch (arg) {
+                case "nyan":
+                    music.beginMelody(music.builtInMelody(Melodies.Nyan), MelodyOptions.Once)
+                    break;
+                case "powerup":
+                    music.beginMelody(music.builtInMelody(Melodies.PowerUp), MelodyOptions.Once)
+                    break;
+                case "powerdown":
+                    music.beginMelody(music.builtInMelody(Melodies.PowerDown), MelodyOptions.Once)
+                    break;
+                case "birthday":
+                    music.beginMelody(music.builtInMelody(Melodies.Birthday), MelodyOptions.Once)
+                    break;
+                case "wedding":
+                    music.beginMelody(music.builtInMelody(Melodies.Wedding), MelodyOptions.Once)
+                    break;
+            }
         }
-    }
-
+    */
     function handleMessage(cmd: string, arg: string) {
         //读取传感器
         if (getSensor(cmd, arg)) {
@@ -276,18 +304,36 @@ namespace knock_robot_neopixel {
             case "img": // 显示图案
                 showImage(arg);
                 break;
-            case "ply": // 播放乐曲
-                playMusic(arg);
-                break;
+            // case "ply": // 播放乐曲
+            //     playMusic(arg);
+            //     break;
             case "led": // 点亮Microbit自带LED
                 showLed(arg);
                 break;
             case "ser": // 伺服电机（舵机）
                 servo(arg);
                 break;
+            case "udx": // 用户自定义自动发送信息
+                UsesDefinedMessage(arg);
+                break;
             default:    // 未知的消息
                 break;
         }
+    }
+
+    // 处理用户自定义自动发送信息
+    function UsesDefinedMessage(arg: string) {
+        // 2位ID，为了扩展，暂时其实只用到1位，不使用0，从1开始
+        let id = parseInt(arg.substr(0, 2));
+        if (id == 0 || id > UD_MAX_ID) return; // ID不合法，反馈
+
+        let enable = parseInt(arg.substr(3, 1)); // 0 停止，1开始
+
+        let timeout = parseInt(arg.substr(4, 4)); // 发送延迟，不能小于min
+        UD_TIMEOUT[id - 1] = timeout > MIN_SEND_TIMEOUT ? timeout : MIN_SEND_TIMEOUT;
+        UD_NEXTTIME[id - 1] = input.runningTime();
+
+        UD_AUTO_SEND[id - 1] = enable == 1; // 设置自动发送
     }
 
     // 第一位为停止位，如果为1，则转动舵机后不断电，如果为0，则转动后断电
@@ -463,7 +509,7 @@ namespace knock_robot_neopixel {
         let cmd = msg.substr(0, 3);
         let args = msg.substr(3);
 
-        let handlerToExamine = handlers;
+        let handlerToExamine = CMD_HANDLERS;
 
         messageContainer.args = args;
 
@@ -493,6 +539,19 @@ namespace knock_robot_neopixel {
             }
         }
     }
+
+    //% blockId=knock_robot_neopixel_sendUserMessage
+    //% block="发送用户消息 |id %id | 消息（最大长度17） %msg"
+    export function sendUserMessage(id: number, msg: string) {
+        bluetooth.uartWriteString("ud" + id + msg.substr(0, 17));
+    }
+
+    //% blockId=knock_robot_neopixel_sendSuperMessage
+    //% block="发送超级消息 | 消息（最大长度20） %msg"
+    export function sendSuperMessage(msg: string) {
+        bluetooth.uartWriteString(msg.substr(0, 20));
+    }
+
     //% block="自动返回消息"
     export function sendMessage() {
         if (BluetoothConnected) {   // 3个字符为命令，第三个字符1为正常，0为异常
@@ -521,6 +580,22 @@ namespace knock_robot_neopixel {
             if (SCAN_ULTRASONIC) {   // 扫描功能调试后再启用
                 SCAN_ULTRASONIC = false;
                 scanUltrasonic();
+            }
+
+            // 处理用户自定义数据返回
+            for (let i = 0; i < UD_MAX_ID; i++) {
+                if (UD_AUTO_SEND[i] && UD_NEXTTIME[i] < input.runningTime()) {
+                    UD_NEXTTIME[i] = input.runningTime() + UD_TIMEOUT[i];
+                    let handlerToExamine = UD_HANDLERS;
+
+                    while (handlerToExamine != null) {
+                        if (handlerToExamine.id == i) {
+                            handlerToExamine.callback()
+                            break;
+                        }
+                        handlerToExamine = handlerToExamine.next
+                    }
+                }
             }
         }
     }
@@ -629,7 +704,4 @@ namespace knock_robot_neopixel {
             strip = neopixel.create(DigitalPin.P16, 4, NeoPixelMode.RGB);
         }
     }
-
-
-
 }
