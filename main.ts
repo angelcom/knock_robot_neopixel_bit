@@ -543,13 +543,17 @@ namespace knock_robot_neopixel {
     //% blockId=knock_robot_neopixel_sendUserMessage
     //% block="发送用户消息 |id %id | 消息（最大长度17） %msg"
     export function sendUserMessage(id: number, msg: string) {
-        bluetooth.uartWriteString("ud" + id + msg.substr(0, 17));
+        if (BluetoothConnected) {
+            bluetooth.uartWriteString("ud" + id + msg.substr(0, 17));
+        }
     }
 
     //% blockId=knock_robot_neopixel_sendSuperMessage
     //% block="发送超级消息 | 消息（最大长度20） %msg"
     export function sendSuperMessage(msg: string) {
-        bluetooth.uartWriteString(msg.substr(0, 20));
+        if (BluetoothConnected) {
+            bluetooth.uartWriteString(msg.substr(0, 20));
+        }
     }
 
     //% block="自动返回消息"
