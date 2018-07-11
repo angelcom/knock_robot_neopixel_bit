@@ -2,16 +2,11 @@
 
 knock microbit with bluetooth,robotbit and neopixel
 
-## TODO
-
-- [ ] Add a reference for your blocks here
-- [ ] Add "icon.png" image (300x200) in the root folder
-- [ ] Add "- beta" to the GitHub project description if you are still iterating it.
-- [ ] Turn on your automated build on https://travis-ci.org
-- [ ] Use "pxt bump" to create a tagged release on GitHub
-- [ ] Get your package reviewed and approved https://makecode.microbit.org/packages/approval
-
-Read more at https://makecode.microbit.org/packages/build-your-own
+## UPDATE
+2018/7/11
+1、移除了对音乐播放的支持，这个会造成哭2
+2、增加了对用户自动返回数据的支持，暂时支持3个
+3、增加了发送数据方法sendSuperMessage，20个字符
 
 ## License
 
