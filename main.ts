@@ -497,7 +497,6 @@ namespace knock_robot_neopixel {
         }
     }
 
-
     //let messageArgString = new CommandContainer();
 
     /**
@@ -685,6 +684,12 @@ namespace knock_robot_neopixel {
             music.playTone(800, 50)
             music.playTone(600, 50)
             basic.pause(10)
+
+            // 置零自动发送变量
+            AC_AUTO_SEND = false;
+            CH_AUTO_SEND = false;
+            UD_AUTO_SEND = [false, false, false];
+            US_AUTO_SEND = false;
         })
         // 初始化超声波
         initUltrasonic(usPort);
