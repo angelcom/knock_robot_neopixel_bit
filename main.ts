@@ -1,3 +1,4 @@
+// 2018-10-7 makecode的substr默认长度10？太坑了
 class ArgsContainer {
     args: string;
 }
@@ -28,7 +29,6 @@ namespace knock_robot_neopixel {
     let AC_AUTO_SEND = false
     let AC_TIMEOUT = MIN_SEND_TIMEOUT    // 自动发送延迟（ms）
     let AC_NEXTTIME = 0   // 下次发送时间
-
     // user-defined;内置3组自定义发送内容
     let UD_AUTO_SEND = [false, false, false]
     let UD_TIMEOUT = [MIN_SEND_TIMEOUT, MIN_SEND_TIMEOUT, MIN_SEND_TIMEOUT]
@@ -39,21 +39,18 @@ namespace knock_robot_neopixel {
     let M1A_SPEED = 0, M2A_SPEED = 0, M1B_SPEED = 0, M2B_SPEED = 0;
 
     let SCAN_ULTRASONIC = false;// 超声波扫描前方障碍物
-
     let CMD_HANDLERS: LinkedKeyHandlerList = null;  // 自定义命令处理器
-
     let UD_HANDLERS: LinkedIdHandlerList = null;  // 用户自动发送数据处理器
-
     // ROBOTBIT内建4个LED灯
     let strip: neopixel.Strip = null;
 
 
     export enum CustomCmd {
-        //% block="reset microbit"
+        //% block="reset_microbit"
         rst = -1,
-        //% block="show string"
+        //% block="show_string"
         str = 1,
-        //% block="show image"
+        //% block="show_image"
         img = 2,
         //% block="move"
         mov = 10,
@@ -61,9 +58,11 @@ namespace knock_robot_neopixel {
         led = 100,
         //% block="servo"
         ser = 1000,
+        //% block="set_tt4_motor"
+        tt4 = 20,   // 控制4路电机
     }
 
-    //% blockId="knock_robot_neopixel_CustomCharConv" block="内置的命令 %c"
+    //% blockId="knock_robot_neopixel_CustomCharConv" block="内置命令 %c"
     export function CustomCharConv(c: CustomCmd): string {
         switch (c) {
             case CustomCmd.rst: return "rst";
@@ -72,6 +71,7 @@ namespace knock_robot_neopixel {
             case CustomCmd.img: return "img";
             case CustomCmd.led: return "led";
             case CustomCmd.ser: return "ser";
+            case CustomCmd.tt4: return "tt4";
         }
         return "???";
     }
@@ -115,155 +115,24 @@ namespace knock_robot_neopixel {
         UD_HANDLERS = newHandler;
     }
 
-
-
-    // let splitString = (splitOnChar: string, input: string) => {
-    //     let result: string[] = []
-    //     let count = 0
-    //     let startIndex = 0
-    //     for (let index = 0; index < input.length; index++) {
-    //         if (input.charAt(index) == splitOnChar) {
-    //             result[count] = input.substr(startIndex, index - startIndex)
-
-    //             startIndex = index + 1
-    //             count = count + 1
-    //         }
-    //     }
-    //     result[count] = input.substr(startIndex, input.length - startIndex)
-
-    //     return result;
-    // }
-
-    // 显示图案
-    function showImage(arg: string) {
-        switch (arg) {
-            case "heart":
-                basic.showIcon(IconNames.Heart);
-                break;
-            case "smallheart":
-                basic.showIcon(IconNames.SmallHeart);
-                break;
-            case "yes":
-                basic.showIcon(IconNames.Yes);
-                break;
-            case "no":
-                basic.showIcon(IconNames.No);
-                break;
-            case "happy":
-                basic.showIcon(IconNames.Happy);
-                break;
-            case "sad":
-                basic.showIcon(IconNames.Sad);
-                break;
-            case "confused":
-                basic.showIcon(IconNames.Confused);
-                break;
-            case "angry":
-                basic.showIcon(IconNames.Angry);
-                break;
-            case "asleep":
-                basic.showIcon(IconNames.Asleep);
-                break;
-            case "surprised":
-                basic.showIcon(IconNames.Surprised);
-                break;
-            case "silly":
-                basic.showIcon(IconNames.Silly);
-                break;
-            case "fabulous":
-                basic.showIcon(IconNames.Fabulous);
-                break;
-            case "meh":
-                basic.showIcon(IconNames.Meh);
-                break;
-            case "tshirt":
-                basic.showIcon(IconNames.TShirt);
-                break;
-            case "rollerskate":
-                basic.showIcon(IconNames.Rollerskate);
-                break;
-            case "duck":
-                basic.showIcon(IconNames.Duck);
-                break;
-            case "house":
-                basic.showIcon(IconNames.House);
-                break;
-            case "tortoise":
-                basic.showIcon(IconNames.Tortoise);
-                break;
-            case "butterfly":
-                basic.showIcon(IconNames.Butterfly);
-                break;
-            case "stickFigure":
-                basic.showIcon(IconNames.StickFigure);
-                break;
-            case "butterfly":
-                basic.showIcon(IconNames.Butterfly);
-                break;
-            case "ghost":
-                basic.showIcon(IconNames.Ghost);
-                break;
-            case "sword":
-                basic.showIcon(IconNames.Sword);
-                break;
-            case "giraffe":
-                basic.showIcon(IconNames.Giraffe);
-                break;
-            case "skull":
-                basic.showIcon(IconNames.Skull);
-                break;
-            case "umbrella":
-                basic.showIcon(IconNames.Umbrella);
-                break;
-            case "snake":
-                basic.showIcon(IconNames.Snake);
-                break;
-            case "rabbit":
-                basic.showIcon(IconNames.Rabbit);
-            case "cow":
-                basic.showIcon(IconNames.Cow);
-                break;
-            case "quarternote":
-                basic.showIcon(IconNames.QuarterNote);
-                break;
-            case "eigthnote":
-                basic.showIcon(IconNames.EigthNote);
-                break;
-            case "pitchfork":
-                basic.showIcon(IconNames.Pitchfork);
-                break;
-            case "target":
-                basic.showIcon(IconNames.Target);
-                break;
-            case "triangle":
-                basic.showIcon(IconNames.Triangle);
-                break;
-            case "lefttriangle":
-                basic.showIcon(IconNames.LeftTriangle);
-                break;
-            case "chessboard":
-                basic.showIcon(IconNames.Chessboard);
-                break;
-            case "diamond":
-                basic.showIcon(IconNames.Diamond);
-                break;
-            case "smalldiamond":
-                basic.showIcon(IconNames.SmallDiamond);
-                break;
-            case "square":
-                basic.showIcon(IconNames.Square);
-                break;
-            case "smallsquare":
-                basic.showIcon(IconNames.SmallSquare);
-                break;
-            case "scissors":
-                basic.showIcon(IconNames.Scissors);
-                break;
-            default:
-                basic.clearScreen();
-                break;
+    let splitString = (splitOnChar: string, input: string) => {
+        //basic.showString(input);
+        let result: string[] = []
+        let count = 0
+        let startIndex = 0
+        for (let index = 0; index < input.length; index++) {
+            if (input.charAt(index) == splitOnChar) {
+                result[count] = input.substr(startIndex, index - startIndex)
+                startIndex = index + 1
+                count = count + 1
+            }
         }
+        if (startIndex != input.length)
+            result[count] = input.substr(startIndex, input.length - startIndex)
+        //basic.showNumber(count);
+        return result;
     }
+
     /* 有问题，暂时不支持
         function playMusic(arg: string) {
             switch (arg) {
@@ -301,13 +170,19 @@ namespace knock_robot_neopixel {
                 doMove(arg);
                 //music.playTone(800, 50) 暂时不播放
                 break;
+            case "tt4": // 同时控制4路tt电机
+                tt4(arg);
+                break;
             case "img": // 显示图案
-                showImage(arg);
+                //showImage(arg);
+                basic.showIcon(parseInt(arg));
+                ledOnBoard("llp");
                 break;
             // case "ply": // 播放乐曲
             //     playMusic(arg);
             //     break;
             case "led": // 点亮Microbit自带LED
+            case "lnp": // 2018-7-24 更新为led neo pixel
                 showLed(arg);
                 break;
             case "ser": // 伺服电机（舵机）
@@ -316,7 +191,93 @@ namespace knock_robot_neopixel {
             case "udx": // 用户自定义自动发送信息
                 UsesDefinedMessage(arg);
                 break;
+            case "lob": // led on-board 板载 5*5led
+                ledOnBoard(arg);
+                break;
+            case "msc":// music
+                playMusic(arg);
+                break;
             default:    // 未知的消息
+                break;
+        }
+    }
+
+    let toneStartTime = 0;
+    let tonebeat = 125;
+    let currentDuration = 4;
+    function playMusic(msg: string) {
+        let cmd = msg.substr(0, 4);
+        let arg = msg.substr(4, msg.length - 4);
+        let frequency = arg;
+        switch (cmd) {
+            case "play":
+                if (arg.length > 5) {
+                    frequency = arg.substr(0, 4);
+                    let duration = parseInt(arg.substr(5, 1));
+                    currentDuration = duration > 0 ? duration : currentDuration;
+                }
+                music.playTone(parseInt(frequency), currentDuration * tonebeat);
+                break;
+            case "ring":
+                if (tonebeat > 0)   // 等于0的时候放开就停止演奏
+                    basic.pause(tonebeat * currentDuration - (input.runningTime() - toneStartTime) % tonebeat);
+                if (arg.length > 5) {
+                    frequency = arg.substr(0, 4);
+                    let duration = parseInt(arg.substr(5, 1));
+                    currentDuration = duration > 0 ? duration : currentDuration;
+                }
+                toneStartTime = input.runningTime();
+                music.ringTone(parseInt(frequency));
+                break;
+            case "rest":
+                if (tonebeat > 0)   // 等于0的时候放开就停止演奏
+                    basic.pause(tonebeat * currentDuration - (input.runningTime() - toneStartTime) % tonebeat);
+                music.rest(1);
+                break;
+            case "beat":
+                tonebeat = parseInt(arg) >= 0 ? parseInt(arg) : tonebeat;
+                break;
+            case "dura":
+                currentDuration = parseInt(arg) >= 0 ? parseInt(arg) : currentDuration;
+                //basic.showNumber(currentDuration);
+                break;
+        }
+    }
+
+
+    //% blockId=knock_robot_neopixel_getLedPlots
+    //% block="读取led5*5状态，按位组成一个整数返回"
+    export function getLedPlots(): number {
+        let plots = 0;
+        for (let i = 0; i < 5; i++) {
+            for (let j = 0; j < 5; j++) {
+                plots = plots * 2;
+                if (led.point(i, j)) {
+                    plots += 1;
+                }
+            }
+        }
+        return plots;
+    }
+
+    function ledOnBoard(msg: string) {
+        let cmd = msg.substr(0, 3);
+        let arg = msg.substr(3, msg.length - 3);
+        switch (cmd) {
+            case "llp": // 读取板载led5*5状态
+                bluetooth.uartWriteString("llp" + getLedPlots())
+                break;
+            case "slp":   // 设置板载led一点
+                let x = parseInt(arg.substr(0, 1))
+                let y = parseInt(arg.substr(1, 1))
+                let b = arg.substr(2, 1)
+                if (b == "1") {
+                    led.plot(x, y); // 点亮
+                }
+                else {
+                    led.unplot(x, y); // 关闭
+                }
+                bluetooth.uartWriteString("llp" + getLedPlots())
                 break;
         }
     }
@@ -326,9 +287,7 @@ namespace knock_robot_neopixel {
         // 2位ID，为了扩展，暂时其实只用到1位，不使用0，从1开始
         let id = parseInt(arg.substr(0, 2));
         if (id == 0 || id > UD_MAX_ID) return; // ID不合法，反馈
-
         let enable = parseInt(arg.substr(3, 1)); // 0 停止，1开始
-
         let timeout = parseInt(arg.substr(4, 4)); // 发送延迟，不能小于min
         UD_TIMEOUT[id - 1] = timeout > MIN_SEND_TIMEOUT ? timeout : MIN_SEND_TIMEOUT;
         UD_NEXTTIME[id - 1] = input.runningTime();
@@ -337,56 +296,75 @@ namespace knock_robot_neopixel {
     }
 
     // 第一位为停止位，如果为1，则转动舵机后不断电，如果为0，则转动后断电
-    // 第二位开始每5位为一个组，其中第一位为舵机编号，支持0-9共10个舵机，
-    // 接下去4位为转动角度，-999~0999(一般为-180~0180)
+    // 第二位开始每4位为一个组，其中第一位为舵机编号，支持0-9共10个舵机，
+    // 接下去3位为转动角度，0～990(一般为0～180)
     function servo(arg: string) {
+
         let stop = parseInt(arg.substr(0, 1));
-        if (arg.length >= 6) {
+        if (arg.length >= 5) {
             let index = parseInt(arg.substr(1, 1));
-            let degree = parseInt(arg.substr(2, 4));
+            let degree = parseInt(arg.substr(2, 3));
             robotbit.Servo(index, degree);
-            basic.pause(50);
             if (stop) {
+                basic.pause(50);
                 setPwm(index + 7, 0, 0);// 舵机断电
             }
         }
-        if (arg.length >= 11) {
-            let index = parseInt(arg.substr(6, 1));
-            let degree = parseInt(arg.substr(7, 4));
+        if (arg.length >= 9) {
+            let index = parseInt(arg.substr(5, 1));
+            let degree = parseInt(arg.substr(6, 3));
             robotbit.Servo(index, degree);
-            basic.pause(50);
             if (stop) {
+                basic.pause(50);
                 setPwm(index + 7, 0, 0);// 舵机断电
             }
         }
-        if (arg.length >= 16) {
-            let index = parseInt(arg.substr(11, 1));
-            let degree = parseInt(arg.substr(12, 4));
+        if (arg.length >= 13) {
+            let index = parseInt(arg.substr(9, 1));
+            let degree = parseInt(arg.substr(10, 3));
             robotbit.Servo(index, degree);
-            basic.pause(50);
             if (stop) {
+                basic.pause(50);
                 setPwm(index + 7, 0, 0);// 舵机断电
             }
         }
+        basic.pause(20);
+
     }
 
     // 前4位LED偏移，后面的N位为颜色（int32）
     function showLed(arg: string) {
+        //basic.showString(arg);
         if (strip != null) {
-            let offset = parseInt(arg.substr(0, 4));
-            let rgb = parseInt(arg.substr(4));
-            strip.setPixelColor(offset, rgb);
+            let ledstr = arg.substr(6, arg.length - 6);
+            let rgb = parseInt("0x" + arg.substr(0, 6));
+            let leds = splitString("|", ledstr);
+            //basic.showNumber(leds.length);
+            for (let i = 0; i < leds.length; i++) {
+                strip.setPixelColor(parseInt(leds[i]), rgb);
+
+            }
             strip.show();
         }
     }
 
+    // 4个速度，分别为M1A,M2B,M2A,M1B,每个速度4位-255～0255
+    function tt4(arg: string) {
+        M1A_SPEED = parseInt(arg.substr(0, 4));
+        M2B_SPEED = parseInt(arg.substr(4, 4));
+        if (arg.length >= 16) {
+            M2A_SPEED = parseInt(arg.substr(8, 4));
+            M1B_SPEED = parseInt(arg.substr(12, 4));
+        }
+        motorRestore();
+    }
+    // 2018-10-6，doMove 这个方法以后直接可以用tt4替代，暂时保留
     function doMove(arg: string) {
         let direction = arg.substr(0, 3);
 
         switch (direction) {
             case "fwd":
                 let speed = parseInt(arg.substr(3));
-                //if (speed < 50 || speed > 250) speed = 80; // 不判断，完全由远端控制
                 M1A_SPEED = -speed, M2B_SPEED = speed;
                 break;
             case "spd": // 默认M1A,M2B，2018-6-13从5位改为4位
@@ -412,7 +390,7 @@ namespace knock_robot_neopixel {
         }
         motorRestore();
     }
-
+    // 2018-10-06   setSpeed 这个方法以后直接可以用tt4替代，暂时保留
     function setSpeed(Motor: string, Speed: number) {
         switch (Motor) {
             case "m1a":
@@ -482,8 +460,10 @@ namespace knock_robot_neopixel {
         }
         return true;
     }
-    // 初始化超声波,端口
-    function initUltrasonic(us_port: number) {
+
+    //% blockId=knock_robot_neopixel_initUltrasonic
+    //% block="初始化超声波 |端口（-1为禁止） %us_port"
+    export function initUltrasonic(us_port: number) {
         if (us_port > -1 && us_port < 17) {
             US_PORT = us_port + 7;
             US_INIT = true;
@@ -498,24 +478,22 @@ namespace knock_robot_neopixel {
     }
 
     //let messageArgString = new CommandContainer();
-
     /**
      * Handles any incoming message
      */
-    export function handleIncomingUARTData(auto: boolean) {
+    function handleIncomingUARTData(auto: boolean) {
         let msg = bluetooth.uartReadUntil(terminator)
+
         if (msg.length < 3) return;// 非法命令（以后再处理）
         let cmd = msg.substr(0, 3);
-        let args = msg.substr(3);
+        let args = msg.substr(3, msg.length - 3);
 
         let handlerToExamine = CMD_HANDLERS;
 
         messageContainer.args = args;
 
         //analyzeCmd(cmd, arg);
-
         //messageContainer = arg;
-
         if (handlerToExamine == null) { //empty handler list
             //basic.showString("nohandler")
             if (auto) {   //handle message with auto handler
@@ -538,12 +516,15 @@ namespace knock_robot_neopixel {
             }
         }
     }
-
+    /**
+      * init microbit with robotbit and neopixel
+      * @param id; eg: "1"
+    */
     //% blockId=knock_robot_neopixel_sendUserMessage
-    //% block="发送用户消息 |id %id | 消息（最大长度17） %msg"
+    //% block="发送用户消息 |id（0~9） %id | 消息（最大长度17） %msg"
     export function sendUserMessage(id: number, msg: string) {
         if (BluetoothConnected) {
-            bluetooth.uartWriteString("ud" + id + msg.substr(0, 17));
+            bluetooth.uartWriteString("ud" + (id%10).toString() + msg.substr(0, 17));
         }
     }
 
@@ -555,7 +536,7 @@ namespace knock_robot_neopixel {
         }
     }
 
-    //% block="自动返回消息"
+    //% block="自动返回消息（如陀螺仪，指南针，超声波等）"
     export function sendMessage() {
         if (BluetoothConnected) {   // 3个字符为命令，第三个字符1为正常，0为异常
             if (CH_AUTO_SEND && CH_NEXTTIME < input.runningTime()) {
@@ -655,9 +636,14 @@ namespace knock_robot_neopixel {
         pins.i2cWriteBuffer(PCA9685_ADDRESS, buf);
     }
 
+    /**
+      * init microbit with robotbit and neopixel
+      * @param autoHandle; eg: true
+      * @param drobotled; eg: true
+      */
     //% blockId=knock_robot_neopixel_init
-    //% block="初始化 |自动处理消息 %autoHandle | 启用板载LED %robotled| 超声波端口 %usPort"
-    export function init(autoHandle: boolean, robotled: boolean, usPort: number = -1) {
+    //% block="初始化 |自动处理消息 %autoHandle | 启用板载LED %robotled"
+    export function init(autoHandle: boolean, robotled: boolean) {
         bluetooth.startUartService()
         bluetooth.onUartDataReceived(terminator, () => {
             handleIncomingUARTData(autoHandle);
@@ -691,8 +677,7 @@ namespace knock_robot_neopixel {
             UD_AUTO_SEND = [false, false, false];
             US_AUTO_SEND = false;
         })
-        // 初始化超声波
-        initUltrasonic(usPort);
+
         // 初始化罗盘
         // if (ch_init) {
         //     //input.calibrateCompass()
@@ -700,7 +685,7 @@ namespace knock_robot_neopixel {
         //     CH_INIT = true
         // }
         // 开启蓝牙uart服务
-        bluetooth.startUartService()
+        //bluetooth.startUartService()
         // 初始化完成，等待蓝牙连接，这里可以加一些判断，显示ch,us,ac这些有没有初始化
         basic.showLeds(`
                         . . # # .
@@ -711,6 +696,9 @@ namespace knock_robot_neopixel {
                         `)
         if (robotled) {
             strip = neopixel.create(DigitalPin.P16, 4, NeoPixelMode.RGB);
+            for (let i = 0; i < 4; i++) // 初始化所有灯为关闭
+                strip.setPixelColor(i, 0);
+            strip.show();
         }
     }
 }

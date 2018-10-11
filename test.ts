@@ -5,7 +5,7 @@ knock_robot_neopixel.onCmdReceived(knock_robot_neopixel.CustomCharConv(knock_rob
     basic.showString(args)
 })
 // 自动处理数据，开启板载LED，超声波接口
-knock_robot_neopixel.init(true, true,-1)
+knock_robot_neopixel.init(true, true)
 basic.forever(() => {
     knock_robot_neopixel.sendMessage();
 })
