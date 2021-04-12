@@ -6,8 +6,7 @@
     "dependencies": {
         "core": "*",
         "bluetooth": "*",
-        "robotbitnopixel": "github:kittenbot/pxt-robotbitnopixel#v0.2.0",
-        "neopixel-bluetoothallowed": "github:laboratoryforplayfulcomputation/pxt-neopixel-bluetoothallowed#v0.0.2"
+        "robotbit": "github:kittenbot/pxt-robotbit#v0.3.6"
     },
     "files": [
         "README.md",
