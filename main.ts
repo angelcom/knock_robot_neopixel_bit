@@ -644,7 +644,7 @@ namespace knock_robot_neopixel {
     //% blockId=knock_robot_neopixel_init
     //% block="初始化 |自动处理消息 %autoHandle | 启用板载LED %robotled"
     export function init(autoHandle: boolean, robotled: boolean) {
-        bluetooth.startUartService()
+        //bluetooth.startUartService()
         bluetooth.onUartDataReceived(terminator, () => {
             handleIncomingUARTData(autoHandle);
             basic.pause(10);
