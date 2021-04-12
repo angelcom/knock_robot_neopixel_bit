@@ -265,7 +265,7 @@ namespace knock_robot_neopixel {
         let arg = msg.substr(3, msg.length - 3);
         switch (cmd) {
             case "llp": // 读取板载led5*5状态
-                bluetooth.uartWriteString("llp" + getLedPlots())
+                bluetooth.uartWriteString("llp" + getLedPlots().toString())
                 break;
             case "slp":   // 设置板载led一点
                 let x = parseInt(arg.substr(0, 1))
@@ -277,7 +277,7 @@ namespace knock_robot_neopixel {
                 else {
                     led.unplot(x, y); // 关闭
                 }
-                bluetooth.uartWriteString("llp" + getLedPlots())
+                bluetooth.uartWriteString("llp" + getLedPlots().toString())
                 break;
         }
     }
